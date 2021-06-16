@@ -91,13 +91,6 @@ option_list = list(
         help = 'Name of the dataset used for training the classifier.'
   ),
   make_option(
-        c("-d", "--dataset-id"), 
-        action = "store",
-        default = NA,
-        type = 'character',
-        help = 'Name of the dataset used for training the classifier.'
-  ),
-  make_option(
         c("-o", "--output-path"), 
         action = "store",
         default = NA,
@@ -107,12 +100,12 @@ option_list = list(
 )
 
 # parse args 
-opt <- wsc_parse_args(option_list, mandatory = c('input_object', 'output_path'))
+opt <- wsc_parse_args(option_list, mandatory = c('input_object', 'output_path', 'cell_type_col', 'cell_barcode_col'))
 # load remaining packages 
 suppressPackageStartupMessages(require(singleCellNet))
 suppressPackageStartupMessages(require(SingleCellExperiment))
 
-sce_obj = opt$input_object
+sce_obj = readRDS(opt$input_object)
 cell_lab_field = opt$cell_type_col
 barcode_field = opt$cell_barcode_col
 
@@ -142,8 +135,7 @@ classifier = scn_train(stTrain = exp_metadata, expTrain = exp_mat,
                        nTopGenes = opt$n_top_genes, nRand = opt$n_rand, nTrees = opt$n_trees,
                        nTopGenePairs = opt$n_top_gene_pairs, dLevel = opt$cell_type_col,
                        colName_samp = opt$cell_barcode_col, weightedDown_dThresh = opt$weighted_down_threshold,
-                       transprop_xFact = opt$transprop_factor, weightDown_total = opt$weighted_down_total,
-                       stratify = opt$stratify)
+                       weightedDown_total = opt$weighted_down_total, stratify = opt$stratify)
 
 # add dataset ID, if specified 
 if(!is.na(opt$dataset_id)){

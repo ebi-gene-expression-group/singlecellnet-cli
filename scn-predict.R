@@ -1,0 +1,79 @@
+#!/usr/bin/env Rscript
+
+# Load optparse we need to check inputs
+suppressPackageStartupMessages(require(optparse))
+# Load common functions
+suppressPackageStartupMessages(require(workflowscriptscommon))
+
+option_list = list(
+    make_option(
+        c("-i", "--input-classifier-object"), 
+        action = "store",
+        default = NA,
+        type = 'character',
+        help = 'Path to the input classifier object in .rds format.'
+  ),
+    make_option(
+        c("-q", "--query-expression-data"), 
+        action = "store",
+        default = NA,
+        type = 'character',
+        help = 'Path to the SCE object containing expression data to be predicted.'
+  ),
+    make_option(
+        c("-n", "--n-rand-prof"), 
+        action = "store",
+        default = 2,
+        type = 'numeric',
+        help = 'The number of random profiles generated for evaluation process'
+  ),
+    make_option(
+        c("-o", "--prediction-output"), 
+        action = "store",
+        default = NA,
+        type = 'character',
+        help = 'Output path to the predictions obtained from the classifier.'
+  ),
+    make_option(
+        c("-r", "--return-raw-output"), 
+        action = "store_true",
+        default = FALSE,
+        type = 'logical',
+        help = "Should the output be returned in raw format (i.e. not transformed into table)? Default: FALSE."
+  )
+)
+
+# parse args 
+opt <- wsc_parse_args(option_list, mandatory = c('input_classifier_object', 'query_expression_data', 'prediction_output'))
+
+# load remaining packages 
+suppressPackageStartupMessages(require(singleCellNet))
+suppressPackageStartupMessages(require(SingleCellExperiment))
+
+# get query matrix
+query = readRDS(opt$query_expression_data)
+if("counts" %in% assays(query)){
+    pred_data = counts(query)
+} else if("normcounts" %in% assays(query)){
+    pred_data = normcounts(query)
+} else {
+    stop("Stopping: Neither 'counts' nor 'normcounts' slot found in provided query object.")
+}
+classifier = readRDS(opt$input_classifier_object)
+res = scn_predict(cnProc = classifier[['cnProc']], expDat = pred_data, nrand = opt$n_rand_prof)
+
+if(opt$return_raw_output){
+    saveRDS(res, opt$prediction_output)
+} else{
+    # process output to get a standard table
+    res = res[, -grep("rand", colnames(res))]
+    cell_id = colnames(res)
+    # get top predictions for each cell 
+    max_val = unlist(apply(res, 2, function(x) x[x == max(x)]))
+    # build a table 
+    tbl = data.frame(cbind(cell_id = cell_id, pred_label = names(max_val), score = unname(max_val)))
+    system(paste("echo '# tool singleCellNet'", ">", opt$output_table))
+    dataset = classifier[["dataset"]]
+    system(paste("echo '# dataset'", dataset, ">>", opt$output_table))
+    write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
+}
