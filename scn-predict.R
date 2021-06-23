@@ -70,12 +70,12 @@ if(opt$return_raw_output){
     cell_id = colnames(res)
     cell_types = row.names(res)
     # get top predictions for each cell 
-    get_top_cells = function(col){
+    .get_top_cells = function(col){
         max_val = max(col)
         max_idx = which.max(col)
         return(c(max_val, max_idx))
     }
-    top_cells = apply(res, 2, get_top_cells)
+    top_cells = apply(res, 2, .get_top_cells)
     scores = as.numeric(top_cells[1,])
     idx = as.integer(top_cells[2,])
     pred_labs = cell_types[idx]
@@ -83,8 +83,8 @@ if(opt$return_raw_output){
     tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
     dataset = classifier[["dataset"]]
     # add metadata lines
-    fc = file(opt$prediction_output)
-    writeLines(c("# tool singleCellNet", paste("# dataset", dataset), fc))
+    fc = file(opt$predictiodn_output)
+    writeLines(c("# tool singleCellNet", paste("# dataset", dataset)), fc)
     close(fc)
     write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
 }
