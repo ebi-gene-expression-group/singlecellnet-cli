@@ -54,7 +54,7 @@ suppressPackageStartupMessages(require(SingleCellExperiment))
 query = readRDS(opt$query_expression_data)
 if("counts" %in% assays(query)){
     pred_data = counts(query)
-} else if("normcounts" %in% assays(query)){
+} else if("normcounts" %in% names(assays(query))){
     pred_data = normcounts(query)
 } else {
     stop("Stopping: Neither 'counts' nor 'normcounts' slot found in provided query object.")
