@@ -81,8 +81,10 @@ if(opt$return_raw_output){
     pred_labs = cell_types[idx]
     # build a table 
     tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
-    system(paste("echo '# tool singleCellNet'", ">", opt$output_table))
     dataset = classifier[["dataset"]]
-    system(paste("echo '# dataset'", dataset, ">>", opt$output_table))
+    # add metadata lines
+    fc = file(opt$output_table)
+    writeLines(c("# tool singleCellNet", paste("# dataset", dataset), fc))
+    close(fc)
     write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
 }
