@@ -83,8 +83,9 @@ if(opt$return_raw_output){
     tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
     dataset = classifier[["dataset"]]
     # add metadata lines
-    fc = file(opt$output_table)
+    fc = file(opt$prediction_output)
     writeLines(c("# tool singleCellNet", paste("# dataset", dataset), fc))
     close(fc)
     write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
 }
+writeLines(c("Hello","World"), fileConn)
