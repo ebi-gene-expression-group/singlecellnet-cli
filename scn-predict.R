@@ -52,7 +52,7 @@ suppressPackageStartupMessages(require(SingleCellExperiment))
 
 # get query matrix
 query = readRDS(opt$query_expression_data)
-if("counts" %in% assays(query)){
+if("counts" %in% names(assays(query))){
     pred_data = counts(query)
 } else if("normcounts" %in% names(assays(query))){
     pred_data = normcounts(query)
@@ -68,10 +68,19 @@ if(opt$return_raw_output){
     # process output to get a standard table
     res = res[, -grep("rand", colnames(res))]
     cell_id = colnames(res)
+    cell_types = row.names(res)
     # get top predictions for each cell 
-    max_val = unlist(apply(res, 2, function(x) x[x == max(x)]))
+    get_top_cells = function(col){
+        max_val = max(col)
+        max_idx = which.max(col)
+        return(c(max_val, max_idx))
+    }
+    top_cells = apply(res, 2, get_top_cells)
+    scores = as.numeric(top_cells[1,])
+    idx = as.integer(top_cells[2,])
+    pred_labs = cell_types[idx]
     # build a table 
-    tbl = data.frame(cbind(cell_id = cell_id, pred_label = names(max_val), score = unname(max_val)))
+    tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
     system(paste("echo '# tool singleCellNet'", ">", opt$output_table))
     dataset = classifier[["dataset"]]
     system(paste("echo '# dataset'", dataset, ">>", opt$output_table))
