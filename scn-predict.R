@@ -88,4 +88,3 @@ if(opt$return_raw_output){
     close(fc)
     write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
 }
-writeLines(c("Hello","World"), fileConn)
