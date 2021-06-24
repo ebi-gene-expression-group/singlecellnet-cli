@@ -60,6 +60,19 @@ if("counts" %in% names(assays(query))){
     stop("Stopping: Neither 'counts' nor 'normcounts' slot found in provided query object.")
 }
 classifier = readRDS(opt$input_classifier_object)
+
+# check overlap across clasification genes and query genes; impute mean values if necessary
+cl_genes = classifier[["cnProc"]][["cgenes"]] 
+query_genes = row.names(pred_data)
+
+if(! all(cl_genes %in% query_genes)) {
+    missing_genes = cl_genes[which(!cl_genes %in% query_genes)]
+    imp_vals = as.numeric(apply(pred_data, 2, mean))
+    imp_vals = t(replicate(length(missing_genes), imp_vals))
+    row.names(imp_vals) = missing_genes
+    pred_data = rbind(pred_data, imp_vals)
+}
+
 res = scn_predict(cnProc = classifier[['cnProc']], expDat = pred_data, nrand = opt$n_rand_prof)
 
 if(opt$return_raw_output){
@@ -83,7 +96,7 @@ if(opt$return_raw_output){
     tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
     dataset = classifier[["dataset"]]
     # add metadata lines
-    fc = file(opt$predictiodn_output)
+    fc = file(opt$prediction_output)
     writeLines(c("# tool singleCellNet", paste("# dataset", dataset)), fc)
     close(fc)
     write.table(tbl, file = opt$prediction_output, sep="\t", row.names=FALSE, append=TRUE)
