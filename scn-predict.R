@@ -66,6 +66,7 @@ cl_genes = classifier[["cnProc"]][["cgenes"]]
 query_genes = row.names(pred_data)
 
 if(! all(cl_genes %in% query_genes)) {
+    print("...Imputing missing genes")
     missing_genes = cl_genes[which(!cl_genes %in% query_genes)]
     imp_vals = as.numeric(apply(pred_data, 2, mean))
     imp_vals = t(replicate(length(missing_genes), imp_vals))
@@ -93,7 +94,7 @@ if(opt$return_raw_output){
     idx = as.integer(top_cells[2,])
     pred_labs = cell_types[idx]
     # build a table 
-    tbl = data.frame(cbind(cell_id = cell_id, pred_label = pred_labs, score = scores))
+    tbl = data.frame(cbind(cell_id = cell_id, predicted_label = pred_labs, score = scores))
     dataset = classifier[["dataset"]]
     # add metadata lines
     fc = file(opt$prediction_output)
