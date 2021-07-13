@@ -2,11 +2,13 @@
 Command Line Interface scripts for the [singleCellNet](https://github.com/pcahan1/singleCellNet) tool. 
 
 ## Installation
-
-
+Install the package through Conda: 
+```
+conda install singlecellnet-cli
+```
 ## Commands 
 ### scn-train-model
-Train a random forest classifier for provided single-cell dataset. Data is accepted as a SingleCellExperiment object. 
+Train a random forest classifier for a provided single-cell dataset. Data is accepted as a SingleCellExperiment object. 
 ```
 scn-train-model.R\
     --input-object <Input SCE object in .rds format>\
